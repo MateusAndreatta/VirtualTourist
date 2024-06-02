@@ -36,8 +36,8 @@ class PhotoAlbumCollectionViewCell: UICollectionViewCell {
     
     // MARK: - Functions
     func configureImage(with photo: Photo) {
-        if let url = photo.url {
-            imageView.downloaded(from: url, contentMode: .scaleAspectFill)
+        if let data = photo.image {
+            imageView.image = UIImage(data: data)
         }
     }
     

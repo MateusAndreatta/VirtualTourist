@@ -28,27 +28,32 @@ class PhotoAlbumViewModel: NSObject {
     }
     
     func getPhotos(completion: @escaping (Bool) -> Void) {
-        FlickrAPI.getPhotos(for: coordinate, page: page) { [weak self] response, error in
-            guard let self, error == nil else {
-                completion(false)
-                return
-            }
-            page += 1
-            if let photosData = response?.photos.photo {
-                
-                for photo in photos {
-                    dataController?.viewContext.delete(photo)
+        FlickrAPI.getPhotos(for: self.coordinate, page: self.page) { [weak self] response, error in
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] () -> Void in
+                guard let self, error == nil else {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        completion(false)
+                    })
+                    return
                 }
-                photos = []
-                
-                for newPhoto in photosData {
-                    if let savedPhoto = savePhoto(with: newPhoto) {
-                        photos.append(savedPhoto)
+                page += 1
+                if let photosData = response?.photos.photo {
+                    
+                    for photo in photos {
+                        dataController?.viewContext.delete(photo)
+                    }
+                    photos = []
+                    
+                    for newPhoto in photosData {
+                        if let savedPhoto = savePhoto(with: newPhoto) {
+                            photos.append(savedPhoto)
+                        }
                     }
                 }
+                DispatchQueue.main.async(execute: { () -> Void in
+                    completion(true)
+                })
             }
-
-            completion(true)
         }
     }
     
@@ -59,10 +64,10 @@ class PhotoAlbumViewModel: NSObject {
     }
     
     private func savePhoto(with photoData: PhotoData) -> Photo? {
-        guard let dataController else { return nil }
+        guard let dataController, let url = URL(string: photoData.link) else { return nil }
         let photo = Photo(context: dataController.viewContext)
-        photo.url = photoData.link
         photo.pin = pin
+        photo.image = try? Data(contentsOf: url)
         try? dataController.viewContext.save()
         return photo
     }
@@ -72,7 +77,7 @@ class PhotoAlbumViewModel: NSObject {
         let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
         let predicate = NSPredicate(format: "pin == %@", pin)
         fetchRequest.predicate = predicate
-        let sortDescriptor = NSSortDescriptor(key: "url", ascending: true)
+        let sortDescriptor = NSSortDescriptor(key: "image", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
 
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
