@@ -10,14 +10,17 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-
+    let dataController = DataController(modelName: "VirtualTourist")
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
-
+        dataController.load()
+        
         self.window = UIWindow(windowScene: windowScene)
-
-        let navigationController = UINavigationController(rootViewController: ViewController())
+        
+        let viewController = TravelLocationsMapViewController()
+        viewController.dataController = dataController
+        let navigationController = UINavigationController(rootViewController: viewController)
 
         self.window?.rootViewController = navigationController
         self.window?.makeKeyAndVisible()
@@ -51,7 +54,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
 
         // Save changes in the application's managed object context when the application transitions to the background.
-        (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
+        try? dataController.viewContext.save()
     }
 
 
