@@ -31,8 +31,8 @@ class TravelLocationsMapViewController: UIViewController, UIGestureRecognizerDel
     }
     
     override func viewDidLoad() {
-        let lpgr = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
-        self.mkMapView.addGestureRecognizer(lpgr)
+        let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress))
+        mkMapView.addGestureRecognizer(longPressGestureRecognizer)
     }
     
     override func viewWillAppear(_ animated: Bool) {

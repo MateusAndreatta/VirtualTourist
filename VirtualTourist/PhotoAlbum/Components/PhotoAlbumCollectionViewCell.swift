@@ -13,7 +13,7 @@ class PhotoAlbumCollectionViewCell: UICollectionViewCell {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.clipsToBounds = true
-        
+        imageView.image = UIImage(named: "landscape-placeholder")
         return imageView
     }()
     
@@ -31,13 +31,19 @@ class PhotoAlbumCollectionViewCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        imageView.image = nil
+        imageView.image = UIImage(named: "landscape-placeholder")
     }
     
     // MARK: - Functions
     func configureImage(with photo: Photo) {
         if let data = photo.image {
-            imageView.image = UIImage(data: data)
+            DispatchQueue.global(qos: .default).async { [weak self] in
+                sleep(1)
+                let image = UIImage(data: data)
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self?.imageView.image = image
+                })
+            }
         }
     }
     
